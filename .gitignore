@@ -1,0 +1,10 @@
+dataset/FDD/*
+dataset/my_record/*
+dataset/UR/deep/*
+dataset/UR/img/*
+dataset/UR/zip/*
+*.caffemodel
+output/*
+*.h5
+*.npy
+.idea
