@@ -14,6 +14,37 @@ BODY_PARTS = {"Head": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
               "LShoulder": 5, "LElbow": 6, "LWrist": 7, "RHip": 8, "RKnee": 9,
               "RAnkle": 10, "LHip": 11, "LKnee": 12, "LAnkle": 13, "Chest": 14}
 
+n_frames = 50
+
+label_count = 0
+
+
+def extract_frames(frames, labels):
+    idx = np.round(np.linspace(0, len(frames) - 1, n_frames)).astype(int)
+    new_frames = frames[idx]
+    global label_count
+    new_labels = labels[idx + label_count]
+    # print(idx, idx + label_count)
+    label_count += len(frames)
+    # print(new_frames.shape,  new_label.shape)
+    return new_frames, new_labels
+
+
+seq_len = 10
+
+
+def create_dataset(frames, labels):
+    x = []
+    y = []
+    for i in range(len(frames) - seq_len + 1):
+        one_set_x = frames[i: i + seq_len, ]
+        one_y = labels[i + seq_len - 1]
+        x.append(one_set_x)
+        y.append(one_y)
+    x = np.array(x)
+    y = np.array(y)
+    return x,y
+
 
 def select(x):
     for s in x:
@@ -43,33 +74,45 @@ def load_data():
     filenames = os.listdir(npy_path)
     filenames.sort()
 
-    x = np.load(os.path.join(npy_path, filenames[0]))
+    label_data = pd.read_csv("./dataset/UR/urfall-cam0-falls.csv")
+    labels = label_data["label"]
+    y = to_categorical(labels, num_classes=3)
+    labels = y
+    one_data = np.load(os.path.join(npy_path, filenames[0]))
+    new_x, new_y = extract_frames(one_data, labels)
+    print(one_data.shape)
+    # x = new_x
+    # y = new_y
+    x, y = create_dataset(new_x, new_y)
 
     for i in range(1, len(filenames)):
         file = os.path.splitext(filenames[i])
         filename, file_type = file
         if file_type == ".npy":
             one_data = np.load(os.path.join(npy_path, filenames[i]), allow_pickle=True)
-            x = np.vstack((x, one_data))
+            print(one_data.shape)
+            new_x, new_y = extract_frames(one_data, labels)
+            new_x, new_y = create_dataset(new_x, new_y)
+
+            x = np.vstack((x, new_x))
+            y = np.vstack((y, new_y))
 
     print(x.shape)
-    label_data = pd.read_csv("./dataset/UR/urfall-cam0-falls.csv")
-    y = label_data["label"]
-    # y = y[84:189]
-    y = to_categorical(y, num_classes=3)
 
     # y = np.array(label_to_vector(y))
     print(y.shape)
-    se = select(x)
-    # x = x.reshape((-1, x.shape[1] * x.shape[2]))
-    x = se.reshape((-1, 1, se.shape[1] * se.shape[2]))
+    # exit(0)
+    # se = select(x)
+    # x = se.reshape((-1, se.shape[1] * se.shape[2]))
+    # x = se.reshape((-1, 1, se.shape[1] * se.shape[2]))
+    x = x.reshape((-1, x.shape[1], x.shape[2] * x.shape[3]))
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=2021)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
     print(x_train.shape, y_train.shape, x_test.shape, y_test.shape)
     return x_train, y_train, x_test, y_test
 
 
 if __name__ == '__main__':
     x_train, y_train, x_test, y_test = load_data()
-    # baseline_model(x_train, y_train, x_test, y_test)
+    #baseline_model(x_train, y_train, x_test, y_test)
     lstm_model(x_train, y_train, x_test, y_test)

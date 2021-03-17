@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 
-
+n_frames = 30
 def load_data(data_path):
     return np.load(data_path)
 
