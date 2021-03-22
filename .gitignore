@@ -3,6 +3,7 @@ dataset/my_record/*
 dataset/UR/deep/*
 dataset/UR/img/*
 dataset/UR/zip/*
+dataset/UR/adl/*
 *.caffemodel
 output/*
 *.h5

@@ -1,8 +1,10 @@
 import numpy as np
 import os
 import pandas as pd
+from keras.engine.saving import load_model
 from keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
 from fall_model import baseline_model
 from fall_model import lstm_model
@@ -20,13 +22,13 @@ label_count = 0
 
 
 def extract_frames(frames, labels):
-    idx = np.round(np.linspace(0, len(frames) - 1, n_frames)).astype(int)
+    # n_frames = 10 * int(len(frames) / 10)
+    n_frames = len(frames)
+    idx = np.round(np.linspace(0, len(frames)-1, n_frames)).astype(int)
     new_frames = frames[idx]
     global label_count
     new_labels = labels[idx + label_count]
-    # print(idx, idx + label_count)
     label_count += len(frames)
-    # print(new_frames.shape,  new_label.shape)
     return new_frames, new_labels
 
 
@@ -43,7 +45,7 @@ def create_dataset(frames, labels):
         y.append(one_y)
     x = np.array(x)
     y = np.array(y)
-    return x,y
+    return x, y
 
 
 def select(x):
@@ -107,12 +109,21 @@ def load_data():
     # x = se.reshape((-1, 1, se.shape[1] * se.shape[2]))
     x = x.reshape((-1, x.shape[1], x.shape[2] * x.shape[3]))
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+    one_test = x[x.shape[0]-2]
+    print(y[x.shape[0]-2])
+
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=2021)
     print(x_train.shape, y_train.shape, x_test.shape, y_test.shape)
-    return x_train, y_train, x_test, y_test
+    return x_train, y_train, x_test, y_test , one_test
 
 
 if __name__ == '__main__':
-    x_train, y_train, x_test, y_test = load_data()
-    #baseline_model(x_train, y_train, x_test, y_test)
+    x_train, y_train, x_test, y_test, test = load_data()
+    # baseline_model(x_train, y_train, x_test, y_test)
     lstm_model(x_train, y_train, x_test, y_test)
+
+    model = load_model('fall_model.h5')
+    test = test.reshape(1, test.shape[0], test.shape[1])
+
+    pred = model.predict(test)
+    print(test, pred)
