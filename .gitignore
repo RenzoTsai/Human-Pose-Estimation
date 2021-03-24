@@ -4,8 +4,8 @@ dataset/UR/deep/*
 dataset/UR/img/*
 dataset/UR/zip/*
 dataset/UR/adl/*
+dataset/UR/adl_img/*
 *.caffemodel
 output/*
-*.h5
 *.npy
 .idea

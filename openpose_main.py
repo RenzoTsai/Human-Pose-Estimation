@@ -49,7 +49,6 @@ elif MODE is "MPI":
 
 output_path = "./output/fall_output_mytest"
 
-# output_path_2 = "./fall_output_mytest_pic4/"
 
 data_set = []
 

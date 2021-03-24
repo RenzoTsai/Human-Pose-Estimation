@@ -1,6 +1,7 @@
 import os
 import cv2
 import numpy as np
+import tensorflow as tf
 
 DEEP_PATH = "./dataset/UR/deep"
 
@@ -14,8 +15,6 @@ def get_deep_data(folder_path):
             img = cv2.imread(os.path.join(folder_path, file), cv2.IMREAD_GRAYSCALE)
             img = cv2.resize(img, (int(img.shape[1] / 4), int(img.shape[0] / 4)))
             data.append(img)
-            cv2.imshow("t", img)
-            cv2.waitKey(0)
     return np.array(data)
 
 

@@ -114,7 +114,7 @@ def load_data():
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=2021)
     print(x_train.shape, y_train.shape, x_test.shape, y_test.shape)
-    return x_train, y_train, x_test, y_test , one_test
+    return x_train, y_train, x_test, y_test, one_test
 
 
 if __name__ == '__main__':
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     # baseline_model(x_train, y_train, x_test, y_test)
     lstm_model(x_train, y_train, x_test, y_test)
 
-    model = load_model('fall_model.h5')
+    model = load_model('./models/my_trained_model/fall_model.h5')
     test = test.reshape(1, test.shape[0], test.shape[1])
 
     pred = model.predict(test)
