@@ -1,8 +1,8 @@
 import cv2
 import shutil
-VIDEO_PATH = './dataset/fall03.mov'
-EXTRACT_FOLDER = './dataset/mypic3'
-EXTRACT_FREQUENCY = 5
+VIDEO_PATH = './dataset/my_record/TV/video/TV5.mp4'
+EXTRACT_FOLDER = './dataset/my_record/TV/TV5'
+EXTRACT_FREQUENCY = 10
 
 
 def extract_frames(video_path, dst_folder, index):
@@ -17,7 +17,9 @@ def extract_frames(video_path, dst_folder, index):
             break
         if count % EXTRACT_FREQUENCY == 0:
             #frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-            save_path = "{}/{:>03d}.jpg".format(dst_folder, index)
+            dirs = dst_folder.split("/")
+            file_name = dirs[-1]
+            save_path = "{}/{}-{:>03d}.jpg".format(dst_folder, file_name, index)
             cv2.imwrite(save_path, frame)
             index += 1
         count += 1
@@ -31,5 +33,6 @@ if __name__ == '__main__':
     except OSError:
         pass
     import os
-    os.mkdir(EXTRACT_FOLDER)
+    if not os.path.exists(EXTRACT_FOLDER):
+        os.mkdir(EXTRACT_FOLDER)
     extract_frames(VIDEO_PATH, EXTRACT_FOLDER, 1)
