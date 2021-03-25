@@ -9,3 +9,4 @@ dataset/UR/adl_img/*
 output/*
 *.npy
 .idea
+__pycache__
