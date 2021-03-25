@@ -34,6 +34,14 @@ Run `preprocess_points.py` to preprocess the Human Skeleton Points for later tra
 
 #### Step Three
 
+##### Skeleton Points Based Model
+
+Run `train.py` to train the skeleton points based fall detection model
+
+##### Depth Map Based Model
+
+Run `deep_train.py` to train the fall detection model
+
+#### Step Four
+
 Run `train.py` to train the fall detection model.
-
-

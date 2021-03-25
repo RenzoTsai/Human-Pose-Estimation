@@ -47,7 +47,7 @@ def lstm_model(x_train=None, y_train=None, x_test=None, y_test=None):
     model.save("/models/my_trained_model/fall_model.h5")
 
 
-def deep_3D_cnn_model(x_train=None, y_train=None, x_test=None, y_test=None):
+def depth_3D_cnn_model(x_train=None, y_train=None, x_test=None, y_test=None):
     model = Sequential()
     model.add(Convolution3D(32, kernel_size=(9, 9, 9), activation='relu',
                             input_shape=(x_train.shape[1], x_train.shape[2], x_train.shape[3], 1)))
@@ -69,10 +69,10 @@ def deep_3D_cnn_model(x_train=None, y_train=None, x_test=None, y_test=None):
     result = model.evaluate(x_test, y_test)
     print(result)
     draw_history(history)
-    model.save("./models/my_trained_modelfall_3d_cnn_model.h5")
+    model.save("./models/my_trained_model/fall_3d_cnn_model.h5")
 
 
-def deep_cnn_lstm_model(x_train=None, y_train=None, x_test=None, y_test=None):
+def depth_cnn_lstm_model(x_train=None, y_train=None, x_test=None, y_test=None):
     model = Sequential()
     model.add(TimeDistributed(
         Conv2D(6, (3, 3), activation='relu', input_shape=(x_train.shape[1], x_train.shape[2], x_train.shape[3], 1))))

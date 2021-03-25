@@ -5,8 +5,8 @@ from keras.engine.saving import load_model
 from keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
 
-from fall_model import deep_3D_cnn_model
-from fall_model import deep_cnn_lstm_model
+from fall_model import depth_3D_cnn_model
+from fall_model import depth_cnn_lstm_model
 
 select_data = []
 vector = []
@@ -48,7 +48,7 @@ def create_dataset(frames, labels):
 
 
 def load_3d_data():
-    npy_path = "./output/deep_npy"
+    npy_path = "./output/depth_npy"
     filenames = os.listdir(npy_path)
     filenames.sort()
 
@@ -80,7 +80,7 @@ def load_3d_data():
     return x_train, y_train, x_test, y_test
 
 def load_2d_data():
-    npy_path = "./output/deep_npy"
+    npy_path = "./output/depth_npy"
     filenames = os.listdir(npy_path)
     filenames.sort()
 
@@ -114,6 +114,6 @@ def load_2d_data():
 
 if __name__ == '__main__':
     x_train, y_train, x_test, y_test = load_3d_data()
-    # deep_3D_cnn_model(x_train, y_train, x_test, y_test)
-    deep_cnn_lstm_model(x_train, y_train, x_test, y_test)
+    # depth_3D_cnn_model(x_train, y_train, x_test, y_test)
+    depth_cnn_lstm_model(x_train, y_train, x_test, y_test)
 

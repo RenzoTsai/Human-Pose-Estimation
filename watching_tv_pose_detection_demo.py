@@ -350,10 +350,13 @@ def draw_position(frame, points_array, roi):
         wh_ratio = get_width_height_ratio(p1, p2, p3)
     if out_of_max_angle():
         cv2.putText(frame, "Bad Pose " + "COS: {:.2f} ".format(cos) + "WH: {:.2f}".format(wh_ratio), (5, 100),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
     elif is_out_of_range(points_array, roi, frame):
         cv2.putText(frame, "Outside the Selected Area " + "COS: {:.2f} ".format(cos) + "WH: {:.2f}".format(wh_ratio), (5, 100),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
+    elif wh_ratio > 0.7:
+        cv2.putText(frame, "Bad Pose " + "COS: {:.2f} ".format(cos) + "WH: {:.2f}".format(wh_ratio), (5, 100),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
     else:
         cv2.putText(frame, "Normal " + "COS: {:.2f} ".format(cos) + "WH: {:.2f}".format(wh_ratio), (5, 100),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))
