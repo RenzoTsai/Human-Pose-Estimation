@@ -65,7 +65,7 @@ The default model of fall detection in this program is model based on skeleton p
 You may be required to input the information about e-mail of the sender and receiver when you run the program.
 And the sender will e-mail the receiver when the program detects fall.
 
-##### Bad Posture of Watching TV Detection
+#### Bad Posture of Watching TV Detection
 
 Run `watching_tv_pose_detection.py` to run the demo of bad posture of watching TV detection.
 
