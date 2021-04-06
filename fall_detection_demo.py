@@ -40,7 +40,7 @@ if MODE is "COCO":
 
 elif MODE is "MPI":
     proto_file = "./models/pose/mpi/pose_deploy_linevec.prototxt"
-    weights_file = "./models/pose/coco/pose_iter_160000.caffemodel"
+    weights_file = "./models/pose/mpi/pose_iter_160000.caffemodel"
 
     # Body Parts attr （omit background: 15)
     BODY_PARTS = {"Head": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,

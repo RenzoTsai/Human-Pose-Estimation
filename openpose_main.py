@@ -162,7 +162,7 @@ def process_img_frame(args):
         print(imgPath)
         frame = cv2.imread(imgPath)
         dots = get_mask_dots_sub(frame, sub)
-        # dots = get_mask_dots(frame, maxFrame, minFrame,sub)
+        # dots = get_mask_dots(frame, maxFrame, minFrame)
 
         rect = cv2.minAreaRect(dots)
         box = np.int0(cv2.boxPoints(rect))
