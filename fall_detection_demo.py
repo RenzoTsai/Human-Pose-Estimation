@@ -1,3 +1,5 @@
+import time
+
 import cv2
 import os
 import argparse
@@ -61,7 +63,7 @@ fps = 30
 
 def parse():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default="./dataset/my_record/mypic2",
+    parser.add_argument('--bg', default="./dataset/my_record/mypic2",
                         help='Path to image or video. Skip to capture frames from camera')
     parser.add_argument('--test', default="./dataset/my_record/mypic2")
     parser.add_argument('--thr', default=0.11, type=float, help='Threshold value for pose parts heat map')
@@ -142,7 +144,8 @@ def replace_invalid_points(old_points, new_points):
 
 # Process image frame
 def process_img_frame(args, user):
-    if not os.path.exists("./output/medianFrame.png"):
+    mode = input("Enter 1 to change medianFrame, or enter 2 to use the previous one:\n")
+    if not os.path.exists("./output/medianFrame.png") or mode == '1':
         get_median_frame(args)
 
     sub = cv2.createBackgroundSubtractorMOG2(history=2 * fps, varThreshold=2, detectShadows=True)
@@ -176,7 +179,10 @@ def process_img_frame(args, user):
 
         O_point, crop_frame, box = get_crop_frame(box, frame)
 
+        time_start = time.time()
         points_array, valid = apply_openpose(args, crop_frame, frame, O_point)
+        time_end = time.time()
+        print('cost: ', time_end-time_start)
 
         label = model_based_predict(detected_frames, frame_count, points_array, trained_model, valid, prev_points_array)
 
@@ -344,11 +350,11 @@ def get_crop_frame(box, frame):
 
 
 def get_median_frame(args):
-    filenames = os.listdir(args.input)
+    filenames = os.listdir(args.bg)
     filenames.sort()
     frames = []
     for file in filenames:
-        imgPath = os.path.join(args.input, file)
+        imgPath = os.path.join(args.bg, file)
         frame = cv2.imread(imgPath)
         print(imgPath)
         frames.append(frame)
@@ -435,9 +441,12 @@ def apply_openpose(args, frame, origin_frame, O_point):
     frame_height = frame.shape[0]
     in_width = int((args.height / frame_height) * frame_width)
     in_height = args.height
+    time1 = time.time()
     inpBlob = cv2.dnn.blobFromImage(frame, 1.0 / 255, (in_width, in_height), (0, 0, 0), swapRB=True, crop=False)
     net.setInput(inpBlob)
     out = net.forward()
+    time2 =time.time()
+    print("op cost: ", time2 - time1)
     out = out[:, :len(BODY_PARTS), :, :]
     H = out.shape[2]
     W = out.shape[3]

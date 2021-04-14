@@ -57,7 +57,7 @@ fps = 30
 
 def parse():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default="./dataset/UR/img/bg3",
+    parser.add_argument('--bg', default="./dataset/UR/img/bg3",
                         help='Path to image or video. Skip to capture frames from camera')
     parser.add_argument('--test', default="./dataset/UR/img/fall-30-cam0-rgb")
     parser.add_argument('--thr', default=0.11, type=float, help='Threshold value for pose parts heat map')
@@ -296,11 +296,11 @@ def get_crop_frame(box, frame):
 
 
 def get_median_frame(args):
-    filenames = os.listdir(args.input)
+    filenames = os.listdir(args.bg)
     filenames.sort()
     frames = []
     for file in filenames:
-        imgPath = os.path.join(args.input, file)
+        imgPath = os.path.join(args.bg, file)
         frame = cv2.imread(imgPath)
         print(imgPath)
         frames.append(frame)

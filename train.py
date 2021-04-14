@@ -50,8 +50,8 @@ def create_dataset(frames, labels):
 
 def select(x):
     for s in x:
-        # select_data.append((s[0], s[1], s[2], s[5], s[8], s[9],  s[11], s[12]))
-        select_data.append((s[0], s[1], s[8], s[9], s[11], s[12]))
+        select_data.append((s[0], s[1], s[2], s[5], s[8], s[9],  s[11], s[12]))
+        # select_data.append((s[0], s[1], s[8], s[9], s[11], s[12]))
     return np.array(select_data)
 
 
@@ -70,9 +70,40 @@ def label_to_vector(y):
             vector.append((0, 1))
     return vector
 
+def load_baseline_data():
+    npy_path = "./output/npy"
+    filenames = os.listdir(npy_path)
+    filenames.sort()
+
+    x = np.load(os.path.join(npy_path, filenames[0]))
+
+    label_data = pd.read_csv("./dataset/UR/urfall-cam0-falls.csv")
+    labels = label_data["label"]
+    y = to_categorical(labels, num_classes=3)
+
+    for i in range(1, len(filenames)):
+        file = os.path.splitext(filenames[i])
+        filename, file_type = file
+        if file_type == ".npy":
+            new_x = np.load(os.path.join(npy_path, filenames[i]), allow_pickle=True)
+            x = np.vstack((x, new_x))
+
+    print(x.shape)
+
+    # y = np.array(label_to_vector(y))
+    print(y.shape)
+    # exit(0)
+    se = select(x)
+    x = se.reshape((-1, se.shape[1] * se.shape[2]))
+    # x = se.reshape((-1, 1, se.shape[1] * se.shape[2]))
+    # x = x.reshape((-1, x.shape[1], x.shape[2] * x.shape[3]))
+
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=2021)
+    print(x_train.shape, y_train.shape, x_test.shape, y_test.shape)
+    return x_train, y_train, x_test, y_test
 
 def load_data():
-    npy_path = "./output/npy"
+    npy_path = "./output/processed_npy"
     filenames = os.listdir(npy_path)
     filenames.sort()
 
@@ -119,11 +150,12 @@ def load_data():
 
 if __name__ == '__main__':
     x_train, y_train, x_test, y_test, test = load_data()
-    # baseline_model(x_train, y_train, x_test, y_test)
-    lstm_model(x_train, y_train, x_test, y_test)
-
-    model = load_model('./models/my_trained_model/fall_model.h5')
-    test = test.reshape(1, test.shape[0], test.shape[1])
-
-    pred = model.predict(test)
-    print(test, pred)
+    x_train, y_train, x_test, y_test = load_baseline_data()
+    baseline_model(x_train, y_train, x_test, y_test)
+    # lstm_model(x_train, y_train, x_test, y_test)
+    #
+    # model = load_model('./models/my_trained_model/fall_model.h5')
+    # test = test.reshape(1, test.shape[0], test.shape[1])
+    #
+    # pred = model.predict(test)
+    # print(test, pred)

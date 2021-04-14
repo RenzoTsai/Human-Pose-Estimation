@@ -61,7 +61,7 @@ def parse():
     parser.add_argument('--bg', default="./dataset/my_record/TV/bg",
                         help='Path to image or video. Skip to capture frames from camera')
     parser.add_argument('--test', default="./dataset/my_record/TV/MIX")
-    parser.add_argument('--thr', default=0.11, type=float, help='Threshold value for pose parts heat map')
+    parser.add_argument('--thr', default=0.1, type=float, help='Threshold value for pose parts heat map')
     parser.add_argument('--width', default=368, type=int, help='Resize input to specific width.')
     parser.add_argument('--height', default=368, type=int, help='Resize input to specific height.')
     parser.add_argument('--mode', default="fall", help='Choose the modes.')
@@ -223,8 +223,8 @@ def get_range(frames, medianFrame):
         old_frame = frames[i]
         divs.append(dframe)
     divMedianFrame = np.median(divs, axis=0).astype(dtype=np.uint8)
-    maxFrame = medianFrame + divMedianFrame * 9
-    minFrame = medianFrame - divMedianFrame * 9
+    maxFrame = medianFrame + divMedianFrame * 10
+    minFrame = medianFrame - divMedianFrame * 10
     return maxFrame, minFrame
 
 
@@ -241,11 +241,11 @@ def get_mask_dots(frame, max_frame, min_frame):
     gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
     blurred = cv2.blur(gray, (8, 8))
     # blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    _, mask = cv2.threshold(blurred, 130, 255, cv2.THRESH_BINARY)
+    _, mask = cv2.threshold(blurred, 129, 255, cv2.THRESH_BINARY)
     kernel_size = int(frame.shape[0] / 40)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
 
-    mask = cv2.erode(mask, None, iterations=2)
+    mask = cv2.erode(mask, None, iterations=1)
 
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=1)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
@@ -348,11 +348,11 @@ def draw_position(frame, points_array, roi):
     wh_ratio = 0
     if valid == 1:
         wh_ratio = get_width_height_ratio(p1, p2, p3)
-    if out_of_max_angle():
-        cv2.putText(frame, "Bad Pose " + "COS: {:.2f} ".format(cos) + "WH: {:.2f}".format(wh_ratio), (5, 100),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
-    elif is_out_of_range(points_array, roi, frame):
+    if is_out_of_range(points_array, roi, frame):
         cv2.putText(frame, "Outside the Selected Area " + "COS: {:.2f} ".format(cos) + "WH: {:.2f}".format(wh_ratio), (5, 100),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
+    elif out_of_max_angle():
+        cv2.putText(frame, "Bad Pose " + "COS: {:.2f} ".format(cos) + "WH: {:.2f}".format(wh_ratio), (5, 100),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
     elif wh_ratio > 0.7:
         cv2.putText(frame, "Bad Pose " + "COS: {:.2f} ".format(cos) + "WH: {:.2f}".format(wh_ratio), (5, 100),

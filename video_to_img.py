@@ -1,7 +1,7 @@
 import cv2
 import shutil
-VIDEO_PATH = './dataset/my_record/TV/video/TV5.mp4'
-EXTRACT_FOLDER = './dataset/my_record/TV/TV5'
+VIDEO_PATH = './dataset/my_record/TV/video/bg.mp4'
+EXTRACT_FOLDER = './dataset/my_record/TV/bg'
 EXTRACT_FREQUENCY = 10
 
 
