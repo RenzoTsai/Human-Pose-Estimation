@@ -1,8 +1,11 @@
 import cv2
 import shutil
-VIDEO_PATH = './dataset/my_record/TV/video/bg.mp4'
-EXTRACT_FOLDER = './dataset/my_record/TV/bg'
-EXTRACT_FREQUENCY = 10
+
+
+# Should change the path if needed
+VIDEO_PATH = './dataset/my_record/TV/video/TV6.mp4'
+EXTRACT_FOLDER = './dataset/my_record/TV/TV6'
+EXTRACT_FREQUENCY = 5
 
 
 def extract_frames(video_path, dst_folder, index):

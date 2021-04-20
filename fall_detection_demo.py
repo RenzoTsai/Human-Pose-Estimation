@@ -19,7 +19,7 @@ old_position = -1
 norm_length = 0
 cos = 0.5 ** 0.5
 
-# 0 for standing, 1,2 for falling(pending), 3 for falling
+# 0 for standing, 5 for falling
 status = 0
 
 MODE = "COCO"
@@ -61,6 +61,7 @@ data_set = []
 fps = 30
 
 
+# Should change some settings if needed
 def parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--bg', default="./dataset/my_record/mypic2",
@@ -111,6 +112,23 @@ def get_width_height_ratio(p1, p2, p3):
 
 # Process video frame
 def process_video_frame(args):
+    mode = input("Enter 1 to change medianFrame, or enter 2 to use the previous one:\n")
+    if not os.path.exists("./output/medianFrame.png") or mode == '1':
+        get_median_frame(args)
+
+    sub = cv2.createBackgroundSubtractorMOG2(history=2 * fps, varThreshold=2, detectShadows=True)
+
+    initFrame = cv2.imread("./output/medianFrame.png")
+    for i in range(10):
+        sub.apply(initFrame)
+
+    frame_count = 0
+    model_based_detected_status = 0
+    detected_frames = []
+    prev_points_array = []
+
+    trained_model = load_model('./models/my_trained_model/fall_model.h5')
+
     cap = cv2.VideoCapture('dataset/fall.mov')
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     frame_w = int(cap.get(3))
@@ -122,12 +140,35 @@ def process_video_frame(args):
     while (cap.isOpened()):
         ret, frame = cap.read()
         if ret:
-            frame = cv2.rotate(frame, cv2.ROTATE_180)
-            points_array = apply_openpose(args, frame)
-            out_data = fall_detect()
-            global old_position
-            old_position = new_position
-            draw_position(out_data, frame)
+            # frame = cv2.rotate(frame, cv2.ROTATE_180)
+            dots = get_mask_dots_sub(frame, sub)
+
+            rect = cv2.minAreaRect(dots)
+            box = np.int0(cv2.boxPoints(rect))
+
+            O_point, crop_frame, box = get_crop_frame(box, frame)
+
+            time_start = time.time()
+            points_array, valid = apply_openpose(args, crop_frame, frame, O_point)
+            time_end = time.time()
+            print('cost: ', time_end - time_start)
+
+            label = model_based_predict(detected_frames, frame_count, points_array, trained_model, valid, prev_points_array)
+
+            if label == 0:
+                model_based_detected_status += 1
+            elif label == 1:
+                model_based_detected_status += 4
+            elif label == 2 and model_based_detected_status > 0:
+                model_based_detected_status -= 1
+
+            if model_based_detected_status >= 1.5 * fps:
+                suspected_img_path = "./output/suspected_img.png"
+                cv2.imwrite(suspected_img_path, frame)
+                send_msg.send_email(user, suspected_img_path)
+                exit(0)
+
+            rule_based_predict(box, frame)
             out.write(frame)
         else:
             break
@@ -182,7 +223,7 @@ def process_img_frame(args, user):
         time_start = time.time()
         points_array, valid = apply_openpose(args, crop_frame, frame, O_point)
         time_end = time.time()
-        print('cost: ', time_end-time_start)
+        print('cost: ', time_end - time_start)
 
         label = model_based_predict(detected_frames, frame_count, points_array, trained_model, valid, prev_points_array)
 
@@ -292,6 +333,7 @@ def get_mask_dots(frame, max_frame, min_frame):
 global old_dots
 
 
+# Process and show the mask of foreground
 def get_mask_dots_sub(frame, sub):
     mask = get_sub_mask(frame, sub)
     plt.imshow(frame)
@@ -307,6 +349,7 @@ def get_mask_dots_sub(frame, sub):
     return dots
 
 
+# Get the mask of foreground
 def get_sub_mask(frame, sub):
     mask = sub.apply(frame)
     # thr, mask = cv2.threshold(fgmask.copy(), 128, 255, cv2.THRESH_BINARY)
@@ -324,6 +367,7 @@ def get_sub_mask(frame, sub):
     return mask
 
 
+# Get the crop frame
 def get_crop_frame(box, frame):
     xs = [i[0] for i in box]
     ys = [i[1] for i in box]
@@ -349,6 +393,7 @@ def get_crop_frame(box, frame):
     return O_point, crop_frame, box
 
 
+# Get the median frame of background
 def get_median_frame(args):
     filenames = os.listdir(args.bg)
     filenames.sort()
@@ -363,10 +408,12 @@ def get_median_frame(args):
     return medianFrame, frames
 
 
+# Detect whether the angle is out of the max angle(45°)
 def out_of_max_angle():
     return 1 if (cos > 0.5 ** 0.5 or cos < -0.5 ** 0.5) else 0
 
 
+# Label the position
 def draw_position(out_data, frame):
     global status
     fall_thr = 3.0
@@ -445,7 +492,7 @@ def apply_openpose(args, frame, origin_frame, O_point):
     inpBlob = cv2.dnn.blobFromImage(frame, 1.0 / 255, (in_width, in_height), (0, 0, 0), swapRB=True, crop=False)
     net.setInput(inpBlob)
     out = net.forward()
-    time2 =time.time()
+    time2 = time.time()
     print("op cost: ", time2 - time1)
     out = out[:, :len(BODY_PARTS), :, :]
     H = out.shape[2]

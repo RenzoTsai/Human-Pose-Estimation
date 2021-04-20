@@ -12,7 +12,7 @@ old_position = -1
 norm_length = 0
 cos = 0.5 ** 0.5
 
-# 0 for standing, 1,2 for falling(pending), 3 for falling
+# 0 for standing, 5 for falling
 status = 0
 
 MODE = "COCO"
@@ -55,6 +55,7 @@ data_set = []
 fps = 30
 
 
+# Should change some settings if needed
 def parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--bg', default="./dataset/UR/img/bg3",

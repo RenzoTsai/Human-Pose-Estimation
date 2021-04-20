@@ -11,11 +11,8 @@ global proto_file, weights_file, POSE_PAIRS
 
 new_position = 0
 old_position = -1
-norm_length = 0
 cos = 0.5 ** 0.5
 
-# 0 for standing, 1,2 for falling(pending), 3 for falling
-status = 0
 
 MODE = "COCO"
 
@@ -56,11 +53,12 @@ data_set = []
 fps = 30
 
 
+# Should change some settings if needed
 def parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--bg', default="./dataset/my_record/TV/bg",
                         help='Path to image or video. Skip to capture frames from camera')
-    parser.add_argument('--test', default="./dataset/my_record/TV/MIX")
+    parser.add_argument('--test', default="./dataset/my_record/TV/TV6")
     parser.add_argument('--thr', default=0.1, type=float, help='Threshold value for pose parts heat map')
     parser.add_argument('--width', default=368, type=int, help='Resize input to specific width.')
     parser.add_argument('--height', default=368, type=int, help='Resize input to specific height.')
@@ -106,6 +104,26 @@ def get_width_height_ratio(p1, p2, p3):
 
 # Process video frame
 def process_video_frame(args):
+    mode = input("Enter 1 to change medianFrame, or enter 2 to use the previous one:\n")
+    if not os.path.exists("./output/medianFrame.png") or mode == '1':
+        medianFrame, frames = get_median_frame(args)
+        max_frame, min_frame = get_range(frames, medianFrame)
+        np.save("maxFrame", max_frame)
+        np.save("minFrame", min_frame)
+    else:
+        max_frame = np.load("maxFrame.npy")
+        min_frame = np.load("minFrame.npy")
+
+    initFrame = cv2.imread("./output/medianFrame.png")
+    mode = input("Enter 1 to select region, or enter 2 to use the previous one:\n")
+    if not os.path.exists("./output/roi.npy") or mode == '1':
+        roi = select_roi(initFrame)
+        np.save("./output/roi", roi)
+    else:
+        roi = np.load("./output/roi.npy")
+
+    print("roi: ", roi)
+
     cap = cv2.VideoCapture('dataset/fall.mov')
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     frame_w = int(cap.get(3))
@@ -117,8 +135,14 @@ def process_video_frame(args):
     while (cap.isOpened()):
         ret, frame = cap.read()
         if ret:
-            frame = cv2.rotate(frame, cv2.ROTATE_180)
-            points_array = apply_openpose(args, frame)
+            # frame = cv2.rotate(frame, cv2.ROTATE_180)
+            dots = get_mask_dots(frame, max_frame, min_frame)
+
+            rect = cv2.minAreaRect(dots)
+            box = np.int0(cv2.boxPoints(rect))
+            O_point, crop_frame, box = get_crop_frame(box, frame)
+            points_array, valid = apply_openpose(args, crop_frame, frame, O_point)
+            rule_based_predict(box, frame, points_array, roi)
 
             global old_position
             old_position = new_position
@@ -131,6 +155,7 @@ def process_video_frame(args):
     out.release()
 
 
+# Replace invalid points by previous points
 def replace_invalid_points(old_points, new_points):
     for i in range(len(new_points)):
         if (new_points[i] == [-1, -1]).any():
@@ -158,10 +183,6 @@ def process_img_frame(args):
         roi = np.load("./output/roi.npy")
 
     print("roi: ", roi)
-    # sub = cv2.createBackgroundSubtractorMOG2(history=2 * fps, varThreshold=2, detectShadows=True)
-
-    # for i in range(10):
-    #     sub.apply(initFrame)
 
     filenames = os.listdir(args.test)
     filenames.sort()
@@ -195,6 +216,7 @@ def process_img_frame(args):
     return data_set_np
 
 
+# Detect whether the point is out of selected area
 def is_out_of_range(points_array, roi, frame):
     x_min, y_min = int(roi[0] / frame.shape[0] * 100), int(roi[1] / frame.shape[1] * 100)
     x_max, y_max = int((roi[0] + roi[2]) / frame.shape[0] * 100), int((roi[1] + roi[3]) / frame.shape[1] * 100)
@@ -205,6 +227,7 @@ def is_out_of_range(points_array, roi, frame):
     return 0
 
 
+# Predict the posture based on a set of rules
 def rule_based_predict(box, frame, points_array, roi):
     global old_position
     old_position = new_position
@@ -215,6 +238,7 @@ def rule_based_predict(box, frame, points_array, roi):
     cv2.drawContours(frame, [box], -1, (0, 255, 0), 3)
 
 
+# Get the median frame and the average difference of two neighboring frames
 def get_range(frames, medianFrame):
     old_frame = frames[0]
     divs = []
@@ -228,6 +252,7 @@ def get_range(frames, medianFrame):
     return maxFrame, minFrame
 
 
+# Get the mask of foreground
 def get_mask_dots(frame, max_frame, min_frame):
     (b, g, r) = cv2.split(frame)
     (b_max, g_max, r_max) = cv2.split(max_frame)
@@ -268,6 +293,7 @@ def get_mask_dots(frame, max_frame, min_frame):
 global old_dots
 
 
+# Process and show the mask of foreground (Not used at this time)
 def get_mask_dots_sub(frame, sub):
     mask = get_sub_mask(frame, sub)
     plt.imshow(frame)
@@ -283,6 +309,7 @@ def get_mask_dots_sub(frame, sub):
     return dots
 
 
+# Get the mask of foreground
 def get_sub_mask(frame, sub):
     mask = sub.apply(frame)
     # thr, mask = cv2.threshold(fgmask.copy(), 128, 255, cv2.THRESH_BINARY)
@@ -300,6 +327,7 @@ def get_sub_mask(frame, sub):
     return mask
 
 
+# Get the crop frame
 def get_crop_frame(box, frame):
     xs = [i[0] for i in box]
     ys = [i[1] for i in box]
@@ -325,6 +353,7 @@ def get_crop_frame(box, frame):
     return O_point, crop_frame, box
 
 
+# Get the median frame of background
 def get_median_frame(args):
     filenames = os.listdir(args.bg)
     filenames.sort()
@@ -339,17 +368,20 @@ def get_median_frame(args):
     return medianFrame, frames
 
 
+# Detect whether the angle is out of the max angle(45°)
 def out_of_max_angle():
     return 1 if (cos > 0.5 ** 0.5 or cos < -0.5 ** 0.5) else 0
 
 
+# Label the position
 def draw_position(frame, points_array, roi):
     p1, p2, p3, p4, valid = get_square(points_array, frame)
     wh_ratio = 0
     if valid == 1:
         wh_ratio = get_width_height_ratio(p1, p2, p3)
     if is_out_of_range(points_array, roi, frame):
-        cv2.putText(frame, "Outside the Selected Area " + "COS: {:.2f} ".format(cos) + "WH: {:.2f}".format(wh_ratio), (5, 100),
+        cv2.putText(frame, "Outside the Selected Area " + "COS: {:.2f} ".format(cos) + "WH: {:.2f}".format(wh_ratio),
+                    (5, 100),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
     elif out_of_max_angle():
         cv2.putText(frame, "Bad Pose " + "COS: {:.2f} ".format(cos) + "WH: {:.2f}".format(wh_ratio), (5, 100),
@@ -413,11 +445,10 @@ def apply_openpose(args, frame, origin_frame, O_point):
     if valid == 0:
         return points_array, valid
     if points[8] != (-1, -1) and points[1] != (-1, -1):
-        global new_position, norm_length, cos
+        global new_position, cos
         new_position = points_normal[1][1]
         a = np.array(points_normal[1])
         b = np.array(points_normal[8])
-        norm_length = np.linalg.norm(a - b)
         c = a - b
         d = np.array([1, 0])
         cos = c.dot(d) / (np.linalg.norm(c) * np.linalg.norm(d))
@@ -430,6 +461,7 @@ def apply_openpose(args, frame, origin_frame, O_point):
     return points_array, valid
 
 
+# Select the stipulate area of watching TV
 def select_roi(frame):
     print(frame.shape)
     roi = cv2.selectROI(frame)
