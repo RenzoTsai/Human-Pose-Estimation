@@ -236,7 +236,7 @@ def get_mask_dots(frame, max_frame, min_frame):
     return dots
 
 
-global old_dots
+old_dots = (-1, -1)
 
 
 def get_mask_dots_sub(frame, sub):

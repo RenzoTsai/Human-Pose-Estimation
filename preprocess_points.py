@@ -26,7 +26,7 @@ def check_points(data):
         for j in range(len(data[i])):
             if all(data[i][j] == [-1, -1]):
                 print(i)
-                print("error")
+                print("Still exists invalid point but it's ok.")
 
 
 if __name__ == '__main__':

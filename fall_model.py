@@ -50,7 +50,7 @@ def lstm_model(x_train=None, y_train=None, x_test=None, y_test=None):
     model.save("fall_model.h5")
 
 
-def deep_3D_cnn_model(x_train=None, y_train=None, x_test=None, y_test=None):
+def depth_3D_cnn_model(x_train=None, y_train=None, x_test=None, y_test=None):
     model = Sequential()
     model.add(Convolution3D(32, kernel_size=(9, 9, 9), activation='relu',
                             input_shape=(x_train.shape[1], x_train.shape[2], x_train.shape[3], 1)))
@@ -75,7 +75,7 @@ def deep_3D_cnn_model(x_train=None, y_train=None, x_test=None, y_test=None):
     model.save("fall_3d_cnn_model.h5")
 
 
-def deep_cnn_lstm_model(x_train=None, y_train=None, x_test=None, y_test=None):
+def depth_cnn_lstm_model(x_train=None, y_train=None, x_test=None, y_test=None):
     model = Sequential()
     model.add(TimeDistributed(
         Conv2D(6, (5, 5), activation='relu', input_shape=(x_train.shape[1], x_train.shape[2], x_train.shape[3], 1))))
@@ -97,10 +97,13 @@ def deep_cnn_lstm_model(x_train=None, y_train=None, x_test=None, y_test=None):
     model.add(Dense(32, activation='tanh'))
 
     model.add(Dense(activation='softmax', units=3))
-    model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.005), metrics=['accuracy'])
+    learning_rate = 0.0005
+    nb_epoch = 100
+    sgd = SGD(lr=learning_rate, decay=learning_rate / nb_epoch)
+    model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
     from keras.utils import plot_model
     plot_model(model, to_file='model.png')
-    history = model.fit(x_train, y_train, batch_size=32, epochs=50, validation_split=0.2)
+    history = model.fit(x_train, y_train, batch_size=32, epochs=nb_epoch, validation_split=0.2)
     print(model.summary())
     result = model.evaluate(x_test, y_test)
     print(result)

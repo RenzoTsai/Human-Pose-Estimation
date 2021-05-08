@@ -48,7 +48,7 @@ def create_dataset(frames, points, labels):
 
 
 def load_data():
-    img_npy_path = "./output/deep_npy"
+    img_npy_path = "./output/depth_npy"
     if os.path.exists(os.path.join(img_npy_path, ".DS_Store")):
         os.remove(os.path.join(img_npy_path, ".DS_Store"))
     img_filenames = os.listdir(img_npy_path)

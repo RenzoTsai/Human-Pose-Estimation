@@ -115,7 +115,7 @@ def process_video_frame(args):
     mode = input("Enter 1 to change medianFrame, or enter 2 to use the previous one:\n")
     if not os.path.exists("./output/medianFrame.png") or mode == '1':
         get_median_frame(args)
-
+    global fps
     sub = cv2.createBackgroundSubtractorMOG2(history=2 * fps, varThreshold=2, detectShadows=True)
 
     initFrame = cv2.imread("./output/medianFrame.png")
