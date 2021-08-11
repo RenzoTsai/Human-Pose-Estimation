@@ -9,7 +9,7 @@ def load_data(data_path):
 
 def replace_invalid_points(old_points, new_points):
     for i in range(len(new_points)):
-        if (new_points[i] == [-1, -1]).any():
+        if (new_points[i] == np.array([-1, -1])).any():
             print(new_points)
             new_points[i] = old_points[i]
             print(new_points)
@@ -24,7 +24,7 @@ def pre_process(img_data):
 def check_points(data):
     for i in range(1, len(data)):
         for j in range(len(data[i])):
-            if all(data[i][j] == [-1, -1]):
+            if all(data[i][j] == np.array([-1, -1])):
                 print(i)
                 print("Still exists invalid point but it's ok.")
 
