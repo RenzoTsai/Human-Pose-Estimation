@@ -3,7 +3,7 @@ This is an Undergraduate Final Year Project by Runze Cai. The goal of this FYP i
 
 There are two main applications. The first one is Fall Detection, and the second is Detection of Bad Posture when Watching TV.
 
-You may start to run the two applications with the following guide, and you can e-mail me <cai@m.runze.xyz> if you meet any question.  
+You may start to run the two applications with the following guide, and you can e-mail me <cairunze17@mails.ucas.ac.cn> if you meet any question.  
 
 ## Quick Start
 
