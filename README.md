@@ -17,6 +17,9 @@ Go to this [Website](http://fenix.univ.rzeszow.pl/~mkepski/ds/uf.html) and downl
 
 Put the zip files into the folder `./dataset/UR/` and unzip the images into `./dataset/UR/img`.
 
+For each different scene, you may select some images of the scene and put them into `./dataset/UR/bg` to help the system
+calculate the average background of this scene.
+
 You may also download all the fall-`**`-cam0-rgb-d.zip files, and unzip the images into `./dataset/UR/depth`.
 
 ### Install Requirements

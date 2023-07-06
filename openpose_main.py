@@ -58,7 +58,7 @@ fps = 30
 # Should change some settings if needed
 def parse():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--bg', default="./dataset/UR/img/bg3",
+    parser.add_argument('--bg', default="./dataset/UR/img/bg",
                         help='Path to image or video. Skip to capture frames from camera')
     parser.add_argument('--test', default="./dataset/UR/img/fall-30-cam0-rgb")
     parser.add_argument('--thr', default=0.11, type=float, help='Threshold value for pose parts heat map')
@@ -198,7 +198,7 @@ def get_range(frames, medianFrame):
     minFrame = medianFrame - divMedianFrame * 9
     return maxFrame, minFrame
 
-
+# Avg BG Subtraction method
 def get_mask_dots(frame, max_frame, min_frame):
     (b, g, r) = cv2.split(frame)
     (b_max, g_max, r_max) = cv2.split(max_frame)
